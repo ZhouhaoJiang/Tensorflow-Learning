@@ -159,13 +159,12 @@ model.compile(loss=losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=[tf.metrics.SparseCategoricalAccuracy()])
 
 # 训练模型
-epochs = 10
+epochs = 80
 # history 是一个包含训练过程中损失和指标值的字典
 history = model.fit(
     train_ds,
     validation_data=val_ds,
     epochs=epochs)
-
 
 loss, accuracy = model.evaluate(test_ds)
 
@@ -204,5 +203,18 @@ plt.legend(loc='lower right')
 plt.show()
 
 # 保存模型
-# model.save(r'./model/stack_overflow_classification')
+# model.save('model/stack_overflow_classification', save_format='tf')
 # 在模型中包含 TextVectorization 层
+export_model = tf.keras.Sequential([
+  vectorize_layer,
+  model,
+  layers.Activation('sigmoid')
+])
+
+# 编译模型 这一步是必须的，因为在模型中包含了 TextVectorization 层
+export_model.compile(
+    loss=losses.SparseCategoricalCrossentropy(from_logits=False), optimizer="adam", metrics=['accuracy']
+)
+
+# 导出模型
+export_model.save('model/stack_overflow_classification', save_format='tf')
